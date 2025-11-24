@@ -1,11 +1,11 @@
 {
-  "name": "devops-resume-repo",
+  "name": "devops-resume",
   "version": "1.0.0",
-  "description": "Phase 1: Preparation & GitHub SetupThis phase sets up your code base and secures your infrastructure state.Step 1: Create the Repository Structure (Local Machine & GitHub)Go to GitHub: Open your browser and navigate to https://github.com/new.Create Repo: Give your repository a professional name (e.g., devops-resume-repo). Choose Public visibility.Clone Locally: On your computer, open your terminal (Command Prompt/PowerShell/Terminal) and run:Bashgit clone https://github.com/your-username/devops-resume-repo.git\r cd devops-resume-repo\r Create Folders: Inside the new folder, create the required structure using your terminal:Bashmkdir src terraform .github\r mkdir .github/workflows\r mkdir terraform/modules\r mkdir terraform/modules/static-app\r Result: You now have the skeleton structure ready for code.",
+  "description": "My DevOps Resume",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0",
-    "lint": "echo \"Linting skipped for now\" && exit 0"
+    "test": "echo \"No tests yet, passing...\" && exit 0",
+    "lint": "echo \"No linting yet, passing...\" && exit 0"
   },
   "keywords": [],
   "author": "",
