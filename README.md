@@ -1,272 +1,132 @@
-Phase 1: Preparation & GitHub Setup
-Goal: Establish your codebase and secure your infrastructure state before writing infrastructure code.
+Cloud DevOps Resume Challenge ☁️ 🚀
+A portfolio project demonstrating Infrastructure as Code (IaC), CI/CD automation, and Cloud Architecture. This repository contains the code to deploy a personal resume website to Azure Static Web Apps, secured with custom headers and monitored via Application Insights, entirely managed by Terraform.
 
-Step 1: Create the Repository Structure
-Create Remote Repo:
+🏗 Architecture
 
-Navigate to GitHub.com/new.
+Shutterstock
+Explore
 
-Name: devops-resume-repo (or similar professional name).
+The Data Flow:
 
-Visibility: Public.
+Developer pushes code to GitHub main branch.
 
-Click: Create repository.
+GitHub Actions triggers the CI/CD pipeline.
 
-Clone & Scaffold Locally: Open your terminal and execute the following commands to set up the directory skeleton:
+Job 1 (CI): Installs Node.js dependencies, runs linting/tests.
+
+Job 2 (CD): Deploys the artifacts to Azure Static Web Apps.
+
+Infrastructure: Terraform manages the state of the Resource Groups, Monitoring, and Hosting resources in Azure.
+
+📂 Project Structure
+Bash
+
+.
+├── .github/workflows/   # CI/CD Pipeline Configuration (YAML)
+├── src/                 # The Frontend Website (HTML/CSS/JS)
+├── terraform/           # Infrastructure as Code
+│   ├── modules/         # Reusable Terraform Modules
+│   │   └── static-app/  # Main application logic
+│   ├── main.tf          # Root configuration
+│   ├── variables.tf     # Variable definitions
+│   ├── outputs.tf       # Deployment outputs (URLs, Keys)
+│   └── backend.tf       # Remote State configuration
+├── package.json         # Node.js config for CI pipeline compliance
+└── README.md            # Documentation
+🛠 Prerequisites
+Before running this project, ensure you have the following:
+
+Azure Account (Free tier works).
+
+Azure CLI installed and logged in (az login).
+
+Terraform CLI installed.
+
+GitHub Account.
+
+🚀 Getting Started
+Phase 1: Remote State Setup (One-time Setup)
+Terraform needs a place to store its "state" file so teams can collaborate. We use Azure Blob Storage for this.
+
+Create a Resource Group in Azure named rg-tfstate-devops.
+
+Create a Storage Account (unique name) inside that group.
+
+Create a Blob Container named tfstate inside that storage account.
+
+Update terraform/backend.tf with your specific storage account name.
+
+Phase 2: Infrastructure Deployment
+Clone the repo:
 
 Bash
 
-# Clone the repository
 git clone https://github.com/your-username/devops-resume-repo.git
-cd devops-resume-repo
-
-# Create directory structure
-mkdir -p src terraform/modules/static-app .github/workflows
-
-# Verify structure
-# You now have folders for source code, infrastructure, and CI/CD logic.
-Step 2: Set up Azure Remote State
-We need a secure, remote location to store the terraform.tfstate file so your team (or future you) creates resources consistently.
-
-In the Azure Portal (portal.azure.com):
-
-Create Resource Group:
-
-Search for Resource groups > Click + Create.
-
-Name: rg-tfstate-devops
-
-Region: (Select your preferred region, e.g., East US).
-
-Click Review + create > Create.
-
-Create Storage Account:
-
-Search for Storage accounts > Click + Create.
-
-Resource Group: rg-tfstate-devops
-
-Name: tfstatestoredevops8642 (Must be unique, lowercase, no spaces).
-
-Redundancy: Locally-redundant storage (LRS) (Cost effective).
-
-Click Review + create > Create.
-
-Create Container:
-
-Go to the new Storage Account resource.
-
-On the left menu, select Data storage > Containers.
-
-Click + Container.
-
-Name: tfstate
-
-Public Access: Private (no anonymous access).
-
-Click Create.
-
-Step 3: Configure Terraform Backend
-Tell Terraform to lock and store the state file in the container created above.
-
-Action: Create terraform/backend.tf and paste the following:
-
-Terraform
-
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "rg-tfstate-devops"
-    storage_account_name = "tfstatestoredevops8642" # Update if you changed the name
-    container_name       = "tfstate"
-    key                  = "resume-repo.terraform.tfstate"
-  }
-}
-Phase 2: Terraform Infrastructure Deployment
-Goal: specific infrastructure resources (Static Web App and Monitoring) using code.
-
-Step 4: Define Azure Resources
-Action: Create terraform/modules/static-app/main.tf.
-
-This code provisions your Resource Group, Application Insights for monitoring, and the Static Web App hosting service.
-
-Terraform
-
-# terraform/modules/static-app/main.tf
-
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-${var.app_name}-prod"
-  location = var.location
-}
-
-# 1. Monitoring: Application Insights
-resource "azurerm_application_insights" "app_insights" {
-  name                = "appi-${var.app_name}-prod"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  application_type    = "web"
-}
-
-# 2. Hosting: Azure Static Web App (SWA)
-resource "azurerm_static_web_app" "resume_swa" {
-  name                = "swa-${var.app_name}-prod"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku_tier            = "Free"
-  sku_size            = "Free"
-}
-Note: Ensure you also create a variables.tf file to define var.app_name and var.location, and an outputs.tf to export the SWA Deployment Token.
-
-Step 5: Initialize and Apply Terraform
-Deploy the infrastructure to Azure.
-
-Navigate: cd terraform
-
-Initialize:
+cd devops-resume-repo/terraform
+Initialize Terraform:
 
 Bash
 
 terraform init
-Confirm that the backend initializes successfully.
+Create a terraform.tfvars file: To avoid hardcoding values, create this file in the terraform/ folder:
 
-Plan:
+Terraform
+
+location = "eastus2"
+app_name = "devops-resume"
+Plan and Apply:
 
 Bash
 
 terraform plan
-Review the resources to be created.
+terraform apply
+Phase 3: CI/CD & Security Configuration
+Once Terraform finishes, it will output sensitive keys. You need these to connect GitHub to Azure.
 
-Apply:
+Retrieve the Deployment Token:
 
 Bash
 
-terraform apply -auto-approve
-Step 6: Configure GitHub Secrets
-For GitHub Actions to deploy code to your new Static Web App, it needs the deployment token generated in Step 5.
+terraform output -raw deployment_token
+Copy this value.
 
-Get the Token:
+Configure GitHub Secrets:
 
-Go to Azure Portal > Search for your new Static Web App (swa-devops-resume-prod).
+Go to your Repo Settings -> Secrets and variables -> Actions.
 
-Click Manage deployment token.
+Create a new secret: AZURE_STATIC_WEB_APPS_API_TOKEN.
 
-Copy the token string.
+Paste the token value.
 
-Add to GitHub:
+Configure Application Insights (Frontend):
 
-Go to your Repo on GitHub > Settings > Secrets and variables > Actions.
+Run terraform output -raw instrumentation_key.
 
-Click New repository secret.
+Paste this key into src/index.html where indicated.
 
-Name: AZURE_STATIC_WEB_APPS_API_TOKEN
+🔄 The Pipeline (CI/CD)
+This project uses GitHub Actions for automation.
 
-Value: (Paste the token).
+Trigger: Pushes to the main branch.
 
-Click Add secret.
+Quality Gate: Runs npm ci and npm run lint to ensure code quality.
 
-Phase 3: Frontend Security & Observability
-Goal: Implement security headers and link the frontend to the monitoring system.
+Deployment: Uses the azure/static-web-apps-deploy action to push the src folder to the live site.
 
-Step 7: Implement Security Headers
-Action: Create src/staticwebapp.config.json.
-
-This file enforces security policies at the edge (Azure CDN).
-
-JSON
-
-{
-  "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;",
-    "X-Frame-Options": "DENY",
-    "X-Content-Type-Options": "nosniff"
-  }
-}
-Step 8: Embed Application Insights Snippet
-Get Instrumentation Key:
-
-From your terraform apply output or Azure Portal (Application Insights > Overview), copy the Instrumentation Key.
-
-Update HTML:
-
-Open src/index.html.
-
-Paste the following script inside the <head> tag:
-
-HTML
-
-<script type="text/javascript">
-  var appInsights=window.appInsights||function(a){
-    function b(a){c[a]=function(){var b=arguments;c.queue.push(function(){c[a].apply(c,b)})}}
-    var c={config:a},d=document,e=window;
-    setTimeout(function(){e.appInsights=c;},1);
-    c.queue=[];
-    for(var f=["trackEvent","trackPageView","trackException","trackTrace","setAuthenticatedUserContext"],g=0;g<f.length;g++)b(""+f[g]);
-    return b("loadAndTrackPage"),b("startTrackPage"),b("stopTrackPage"),c
-  }({
-      instrumentationKey: "PASTE_YOUR_KEY_HERE"
-  });
-</script>
-Phase 4: Automated CI/CD Pipeline
-Goal: Automate testing and deployment on every code push.
-
-Step 9: Define CI/CD Workflow
-Action: Create .github/workflows/azure-swa.yml.
-
-YAML
-
-name: Build and Deploy DevOps Resume
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    types: [opened, synchronize, reopened]
-
-jobs:
-  # Job 1: Quality Gate (Linting & Testing)
-  lint_and_test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install dependencies
-        run: npm ci # Faster and cleaner than npm install for CI
-      - name: Run Linting and Tests
-        run: |
-          npm run lint
-          npm test
-
-  # Job 2: Deployment (Only runs if Job 1 passes)
-  build_and_deploy:
-    runs-on: ubuntu-latest
-    needs: lint_and_test
-    name: Build and Deploy to Azure SWA
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      
-      - name: Build and Deploy Static App
-        uses: azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/src"      # Folder containing your index.html
-          output_location: "dist"   # Folder containing build output
-          skip_app_build: true      # Set false if you are building a framework (React/Vue)
-Step 10: Commit and Launch
-Trigger the pipeline by pushing your code.
+To trigger a deployment: Simply make a change to the HTML/CSS and push:
 
 Bash
 
 git add .
-git commit -m "feat: Initial commit with Terraform, Security config, and CI/CD"
+git commit -m "feat: Updated resume content"
 git push origin main
-Result: Navigate to the Actions tab in your GitHub repository. You will see the pipeline execute:
+🔍 Verification
+Check the URL: After deployment, run:
 
-Lint/Test: Checks code quality.
+Bash
 
-Deploy: Pushes the src folder to your live Azure URL.
+cd terraform
+terraform output -raw site_url
+Open the URL in your browser.
+
+Check Monitoring: Go to the Azure Portal -> Application Insights. You will see live traffic data, page views, and performance metrics from your site.
