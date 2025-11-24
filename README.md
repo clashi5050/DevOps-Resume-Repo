@@ -129,4 +129,21 @@ cd terraform
 terraform output -raw site_url
 Open the URL in your browser.
 
+
 Check Monitoring: Go to the Azure Portal -> Application Insights. You will see live traffic data, page views, and performance metrics from your site.
+
+📜 Future Improvements
+[ ] Add a custom domain (e.g., www.yourname.com).
+
+[ ] Implement a Visitor Counter using Azure Functions (API).
+
+[ ] Add Cypress for End-to-End testing in the pipeline.
+
+✍️ Author
+Clayton Shields Jr.
+
+LinkedIn Profile
+
+Portfolio/Website
+
+Built with ❤️ using Terraform and Azure.
