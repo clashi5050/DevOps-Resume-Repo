@@ -142,8 +142,9 @@ Check Monitoring: Go to the Azure Portal -> Application Insights. You will see l
 ✍️ Author
 Clayton Shields Jr.
 
-LinkedIn Profile
+www.linkedin.com/in/claytonshieldsjr
 
-Portfolio/Website
+https://medium.com/@claytonshieldsjr
 
 Built with ❤️ using Terraform and Azure.
+
