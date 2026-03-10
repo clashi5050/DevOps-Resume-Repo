@@ -1,132 +1,47 @@
-Cloud DevOps Resume Challenge ☁️ 🚀
-A portfolio project demonstrating Infrastructure as Code (IaC), CI/CD automation, and Cloud Architecture. This repository contains the code to deploy a personal resume website to Azure Static Web Apps, secured with custom headers and monitored via Application Insights, entirely managed by Terraform.
+# Terraform Module: Azure Static Web App with Application Insights
 
-🏗 Architecture
+This Terraform module provisions the core Azure resources required for hosting a static website with integrated monitoring. It sets up an Azure Resource Group, an Azure Static Web App, and an Azure Application Insights instance.
 
-Shutterstock
-Explore
+## Resources Provisioned
 
-The Data Flow:
+*   **`azurerm_resource_group`**: A dedicated resource group to contain all resources for the static web app.
+*   **`azurerm_application_insights`**: An Application Insights instance for monitoring the static web app's frontend performance and usage.
+*   **`azurerm_static_web_app`**: The Azure Static Web App resource itself, designed for hosting static content and integrating with CI/CD pipelines.
 
-Developer pushes code to GitHub main branch.
+## Usage
 
-GitHub Actions triggers the CI/CD pipeline.
+To use this module, include it in your root Terraform configuration (e.g., `main.tf` in the parent `terraform/` directory) and provide the necessary input variables.
 
-Job 1 (CI): Installs Node.js dependencies, runs linting/tests.
+Example:
 
-Job 2 (CD): Deploys the artifacts to Azure Static Web Apps.
+```terraform
+module "static_resume_app" {
+  source = "./modules/static-app" # Path to this module
 
-Infrastructure: Terraform manages the state of the Resource Groups, Monitoring, and Hosting resources in Azure.
+  app_name = var.app_name
+  location = var.location
+}
+```
 
-📂 Project Structure
-Bash
+## Inputs
 
-.
-├── .github/workflows/   # CI/CD Pipeline Configuration (YAML)
-├── src/                 # The Frontend Website (HTML/CSS/JS)
-├── terraform/           # Infrastructure as Code
-│   ├── modules/         # Reusable Terraform Modules
-│   │   └── static-app/  # Main application logic
-│   ├── main.tf          # Root configuration
-│   ├── variables.tf     # Variable definitions
-│   ├── outputs.tf       # Deployment outputs (URLs, Keys)
-│   └── backend.tf       # Remote State configuration
-├── package.json         # Node.js config for CI pipeline compliance
-└── README.md            # Documentation
-🛠 Prerequisites
-Before running this project, ensure you have the following:
+The following input variables are required for this module:
 
-Azure Account (Free tier works).
+| Name       | Description                                        | Type     | Default | Required |
+| :--------- | :------------------------------------------------- | :------- | :------ | :------- |
+| `app_name` | A unique name for your application, used in naming resources. | `string` | n/a     | yes      |
+| `location` | The Azure region where resources will be deployed. | `string` | n/a     | yes      |
 
-Azure CLI installed and logged in (az login).
+*(Note: These variables are assumed based on the `main.tf` snippet provided. A complete module would have a `variables.tf` file defining these explicitly.)*
 
-Terraform CLI installed.
+## Outputs
 
-GitHub Account.
+This module is designed to output key information needed for further configuration, such as CI/CD integration and frontend monitoring. While not explicitly defined in the provided `main.tf` snippet for the module, typical outputs for a static web app module would include:
 
-🚀 Getting Started
-Phase 1: Remote State Setup (One-time Setup)
-Terraform needs a place to store its "state" file so teams can collaborate. We use Azure Blob Storage for this.
+| Name                | Description                                                               |
+| :------------------ | :------------------------------------------------------------------------ |
+| `site_url`          | The URL of the deployed Azure Static Web App.                             |
+| `deployment_token`  | The deployment token required for GitHub Actions integration.             |
+| `instrumentation_key` | The Application Insights instrumentation key for frontend integration.    |
 
-Create a Resource Group in Azure named rg-tfstate-devops.
-
-Create a Storage Account (unique name) inside that group.
-
-Create a Blob Container named tfstate inside that storage account.
-
-Update terraform/backend.tf with your specific storage account name.
-
-Phase 2: Infrastructure Deployment
-Clone the repo:
-
-Bash
-
-git clone https://github.com/your-username/devops-resume-repo.git
-cd devops-resume-repo/terraform
-Initialize Terraform:
-
-Bash
-
-terraform init
-Create a terraform.tfvars file: To avoid hardcoding values, create this file in the terraform/ folder:
-
-Terraform
-
-location = "eastus2"
-app_name = "devops-resume"
-Plan and Apply:
-
-Bash
-
-terraform plan
-terraform apply
-Phase 3: CI/CD & Security Configuration
-Once Terraform finishes, it will output sensitive keys. You need these to connect GitHub to Azure.
-
-Retrieve the Deployment Token:
-
-Bash
-
-terraform output -raw deployment_token
-Copy this value.
-
-Configure GitHub Secrets:
-
-Go to your Repo Settings -> Secrets and variables -> Actions.
-
-Create a new secret: AZURE_STATIC_WEB_APPS_API_TOKEN.
-
-Paste the token value.
-
-Configure Application Insights (Frontend):
-
-Run terraform output -raw instrumentation_key.
-
-Paste this key into src/index.html where indicated.
-
-🔄 The Pipeline (CI/CD)
-This project uses GitHub Actions for automation.
-
-Trigger: Pushes to the main branch.
-
-Quality Gate: Runs npm ci and npm run lint to ensure code quality.
-
-Deployment: Uses the azure/static-web-apps-deploy action to push the src folder to the live site.
-
-To trigger a deployment: Simply make a change to the HTML/CSS and push:
-
-Bash
-
-git add .
-git commit -m "feat: Updated resume content"
-git push origin main
-🔍 Verification
-Check the URL: After deployment, run:
-
-Bash
-
-cd terraform
-terraform output -raw site_url
-Open the URL in your browser.
-
-Check Monitoring: Go to the Azure Portal -> Application Insights. You will see live traffic data, page views, and performance metrics from your site.
+*(Note: These outputs would typically be defined in an `outputs.tf` file within this module.)*
